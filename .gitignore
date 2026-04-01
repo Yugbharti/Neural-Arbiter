@@ -1,6 +1,7 @@
 # Environment Variables
 .env
 backend/.env
+frontend/.env
 
 # Python junk
 __pycache__/
