@@ -182,3 +182,15 @@
     border-right-color: var(--border);
   }
 }
+
+.logo-container { /* Ensure this is a relatively positioned container */
+  position: relative;
+  /* Other container styles */
+}
+
+.logo {
+  position: absolute;
+  bottom: 20px; /* Adjust spacing from the bottom */
+  right: 20px;  /* Adjust spacing from the right */
+  /* Other logo styles */
+}
