@@ -10,7 +10,7 @@ services:
         sync: false # You will set this in the Render Dashboard
       - key: GROQ_API_KEY
         sync: false
-      - key: TAVILY_API_KEY
+      - key: ANTHROPIC_API_KEY
         sync: false
       - key: PYTHONPATH
         value: ./backend
