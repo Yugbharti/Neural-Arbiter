@@ -1,0 +1,13 @@
+@import "tailwindcss";
+
+@keyframes loading {
+  0% { width: 0%; }
+  20% { width: 30%; }
+  50% { width: 70%; }
+  100% { width: 100%; }
+}
+
+/* Optional: Subtle background pulse for the landing page */
+.animate-pulse-slow {
+  animation: pulse 8s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
