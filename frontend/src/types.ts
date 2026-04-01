@@ -1,8 +1,15 @@
 export interface ArgumentNode {
   id: string;
   type: string; // "Premise", "Evidence", "Rebuttal"
-  content: string;
   speaker: string;
+  
+  // ── NEW: Added to match the Graph.tsx mapping ──
+  claim?: string;      // Maps to 'content' in your UI
+  fallacy?: string;    // Maps to 'type' (the badge) in your UI
+  strength?: string;   // Maps to 'strength' in your UI
+  
+  // Keeping your original content field
+  content: string;     
 }
 
 export interface TranscriptEntry {

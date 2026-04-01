@@ -1,7 +1,6 @@
 import React, { useMemo } from 'react';
 import { 
   ReactFlow, 
-  MiniMap, 
   Controls, 
   Background, 
   BackgroundVariant, 

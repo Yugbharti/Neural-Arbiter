@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { ReadyState } from 'react-use-websocket';
 import { useDebate } from './hooks/useDebate';
 import { Chart } from './components/Chart';
@@ -6,7 +6,7 @@ import { Graph } from './components/Graph';
 import { Chat } from './components/Chat';
 import { Sidebar } from './components/Sidebar';
 import { FinalVerdict } from './components/FinalVerdict';
-import { Activity, Play, User, Bot, Shield, Cpu, Globe, ArrowRight } from 'lucide-react';
+import {  Play, Shield, Cpu,  ArrowRight } from 'lucide-react';
 
 function App() {
   // --- UI STATES ---
@@ -18,13 +18,17 @@ function App() {
 
   const { state, readyState, startDebate, submitArgument, isWaitingForHuman } = useDebate();
 
-  const connectionStatus = {
-    [ReadyState.CONNECTING]: 'Connecting',
-    [ReadyState.OPEN]: 'Online',
-    [ReadyState.CLOSING]: 'Closing',
-    [ReadyState.CLOSED]: 'Offline',
-    [ReadyState.UNINSTANTIATED]: 'Offline',
-  }[readyState];
+// 1. Your dictionary (already defined)
+const connectionStatusMap: Record<number, string> = {
+  [ReadyState.CONNECTING]: 'Connecting',
+  [ReadyState.OPEN]: 'Online',
+  [ReadyState.CLOSING]: 'Closing',
+  [ReadyState.CLOSED]: 'Offline',
+  [ReadyState.UNINSTANTIATED]: 'Offline',
+};
+
+// 2. Perform the lookup to get a single string
+// const statusLabel = connectionStatusMap[readyState as keyof typeof connectionStatusMap] || 'Offline';
 
   useEffect(() => {
     if (state?.final_verdict) setShowVerdict(true);
@@ -106,8 +110,9 @@ function App() {
             <h1 className="text-lg font-black text-white tracking-tight uppercase">Neural Arbiter</h1>
             <div className="flex items-center gap-2">
                <span className={`h-1.5 w-1.5 rounded-full ${readyState === ReadyState.OPEN ? 'bg-emerald-500 shadow-[0_0_8px_#10b981]' : 'bg-red-500'}`} />
-               <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">{connectionStatus}</p>
-            </div>
+<p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">
+  {connectionStatusMap[readyState as keyof typeof connectionStatusMap] || 'Offline'}
+</p>            </div>
           </div>
         </div>
 
