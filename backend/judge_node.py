@@ -40,17 +40,17 @@ class FinalVerdictOutput(BaseModel):
     conclusion: str = Field(description="The definitive, bottom-line answer to the debate topic.")
 
 
-# ── TEST MODE mocks ────────────────────────────────────────────────────────────
+# ── TEST MODE mocks (Updated to be generic) ────────────────────────────────────
 def _mock_verdict(round_num: int) -> JudgeVerdict:
     return JudgeVerdict(
         score_agent_a=72,
         score_agent_b=65,
-        bias_detected="Agent B employed a form of the 'appeal to impossibility' fallacy.",
+        bias_detected="Agent B employed a minor 'appeal to incredulity' regarding the proposed framework.",
         argument_nodes=[
-            ArgumentNode(id=f"A-R{round_num}", speaker="Agent A", claim="Casimir geometry extension.", strength="moderate", fallacy="none"),
-            ArgumentNode(id=f"B-R{round_num}", speaker="Agent B", claim="Casimir force is insufficient.", strength="strong", fallacy="appeal to impossibility"),
+            ArgumentNode(id=f"A-R{round_num}", speaker="Agent A", claim="The proposed model is structurally viable based on current data.", strength="moderate", fallacy="none"),
+            ArgumentNode(id=f"B-R{round_num}", speaker="Agent B", claim="Historical precedents suggest the implementation is unfeasible.", strength="strong", fallacy="appeal to incredulity"),
         ],
-        round_summary=f"Round {round_num} saw Agent A advance a mathematically grounded proposal."
+        round_summary=f"Round {round_num} saw Agent A advance a logically sound proposal, while Agent B countered by highlighting practical constraints."
     )
 
 
@@ -90,8 +90,11 @@ def _invoke_with_fallback(prompt_messages, schema_class):
 
 
 # ── Round-by-Round Judge Node ──────────────────────────────────────────────────
-_JUDGE_SYSTEM = """You are an impartial, hyper-rigorous scientific arbiter. \
-Your sole function is to evaluate arguments on logical coherence and evidential support."""
+# Updated to be a generic, domain-agnostic arbiter
+_JUDGE_SYSTEM = """You are an elite, impartial analytical judge. \
+Your sole function is to rigorously evaluate arguments on logical coherence, \
+structural soundness, and evidential support, automatically adapting your analytical \
+framework to the specific domain of the debate."""
 
 def _build_judge_prompt(state: DebateState, round_num: int) -> str:
     transcript = state.get("transcript", [])
@@ -139,10 +142,10 @@ def final_verdict_node(state: DebateState) -> dict:
     if TEST_MODE:
         print("[final_verdict_node] TEST_MODE — returning mock structured verdict.")
         verdict_data = {
-            "analysis": "Agent A provided strong mathematical frameworks, while Agent B grounded the debate in observational limits.",
+            "analysis": "Agent A provided strong theoretical frameworks, while Agent B successfully grounded the debate in practical limitations.",
             "confidence": 88,
-            "bias": "Agent A exhibited theoretical optimism; Agent B relied on empirical conservatism.",
-            "conclusion": "Antigravity remains practically impossible under our current understanding of physical constraints."
+            "bias": "Agent A leaned towards theoretical idealism, whereas Agent B anchored their arguments in empirical skepticism.",
+            "conclusion": "While the proposed model holds conceptual promise, the practical implementation remains highly improbable under current constraints."
         }
     else:
         print("[final_verdict_node] Requesting Final Verdict...")

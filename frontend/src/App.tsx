@@ -123,11 +123,13 @@ const connectionStatusMap: Record<number, string> = {
              <button onClick={() => setIsHumanMode(true)} className={`px-4 py-2 text-xs font-bold rounded-lg transition-all ${isHumanMode ? 'bg-blue-600 text-white shadow-xl' : 'text-gray-500 hover:text-gray-300'}`}>Human vs AI</button>
           </div>
           
-          <input 
-            value={topic} 
-            onChange={(e) => setTopic(e.target.value)}
-            className="bg-black/40 border border-gray-800 text-sm rounded-xl px-4 py-2.5 w-80 text-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
-          />
+        <input 
+  value={topic} 
+  onChange={(e) => setTopic(e.target.value)}
+  // ADD THIS LINE BELOW:
+  placeholder="Enter a debate topic (e.g., Quantum Computing vs General AI)..."
+  className="bg-black/40 border border-gray-800 text-sm rounded-xl px-4 py-2.5 w-80 text-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all placeholder:text-gray-600"
+/>
           
           <button 
             onClick={handleStart}

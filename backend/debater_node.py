@@ -6,7 +6,7 @@ Routes the current speaking turn to the correct LLM:
   Agent B  →  Groq  Llama 3  8B
 
 Both agents receive:
-  • The shared system prompt (physicist persona + debate rules)
+  • The shared system prompt (dynamic expert persona + debate rules)
   • The full transcript so far (for rebuttals)
   • The latest web search context (for grounding)
 
@@ -24,33 +24,35 @@ from config import (
     LLM_TEMPERATURE,
 )
 
-# ── Shared physicist persona injected into BOTH agents ────────────────────────
-_SYSTEM_PROMPT = """You are a relentless, Nobel-caliber theoretical physicist \
-debating the theoretical realization of Antigravity. Ground every argument in \
-Mathematics, General Relativity, and Quantum Mechanics. Do not use Sci-Fi tropes. \
-Use the provided web search context to destroy your opponent's premise. \
-Be academic, brutal, and strictly logical. Keep your response to 3–5 dense \
-sentences — quality over length."""
+# ── Dynamic, Role-Agnostic System Prompt ──────────────────────────────────────
+_SYSTEM_PROMPT = """You are an elite, world-class expert and a relentless debater. \
+Your persona, vocabulary, and analytical framework must automatically adapt to the \
+specific DEBATE TOPIC provided by the user. Whether the topic is scientific, \
+philosophical, political, or cultural, you must argue with academic rigor, brutal \
+logic, and deep domain expertise. 
+
+RULES:
+1. Ground every argument in established facts, logic, and the provided WEB RESEARCH CONTEXT.
+2. Directly attack your opponent's premises and expose their logical fallacies ruthlessly.
+3. Do not use fluff, filler words, or introductory pleasantries.
+4. Keep your response to 3–5 dense, high-impact sentences — prioritize quality and structural soundness over length."""
 
 
-# ── TEST MODE mocks ────────────────────────────────────────────────────────────
+# ── TEST MODE mocks (Updated to be generic) ───────────────────────────────────
 _MOCK_ARGS = {
     "Agent A": (
-        "The Einstein field equations permit solutions with negative-energy-density "
-        "regions — the Casimir geometry being a laboratory-scale proof of concept. "
-        "If we extend this to macroscopic scales via squeezed quantum vacuum states, "
-        "the stress-energy tensor T_μν can, in principle, be engineered to produce "
-        "a repulsive spacetime curvature. The mathematics is self-consistent; "
-        "the engineering is the obstacle, not the physics."
+        "The foundational premise of my opponent's argument ignores the primary empirical data. "
+        "When we analyze the core variables within the provided context, the systemic constraints "
+        "clearly dictate an alternative outcome. The established theoretical models support this trajectory "
+        "without requiring the logical leaps my opponent is making. Therefore, the position holds strong "
+        "under rigorous scrutiny."
     ),
     "Agent B": (
-        "Your invocation of the Casimir effect is a category error. "
-        "The Casimir force is a boundary-condition artifact of QFT in flat spacetime "
-        "and contributes a negligible T_μν — nine orders of magnitude below what "
-        "would be needed to alter geodesics. The weak energy condition remains "
-        "observationally unviolated at every astrophysical scale we have probed. "
-        "Antigravity as you describe it is not a physics problem; it is a fantasy "
-        "dressed in tensor notation."
+        "Your reliance on those specific models represents a fundamental category error. "
+        "By selectively interpreting the available context, you are ignoring the secondary cascading effects "
+        "that inevitably undermine your conclusion. A truly rigorous analysis of the boundary conditions "
+        "reveals that your proposed framework is fundamentally unsustainable. This is not a matter of interpretation; "
+        "it is a structural failure in your logic."
     ),
 }
 
@@ -66,7 +68,7 @@ def _build_human_prompt(agent_name: str, topic: str, transcript: list, web_conte
         )
         history_block = f"--- TRANSCRIPT (most recent exchanges) ---\n{history_lines}\n"
     else:
-        history_block = "--- TRANSCRIPT ---\n(You are opening the debate.)\n"
+        history_block = "--- TRANSCRIPT ---\n(You are opening the debate. Set a strong foundation for your position.)\n"
 
     # Format web context
     if web_context:
