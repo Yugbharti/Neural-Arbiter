@@ -13,7 +13,7 @@ function App() {
   const [isInitializing, setIsInitializing] = useState(true);
   const [isSystemLoading, setIsSystemLoading] = useState(false);
   const [showVerdict, setShowVerdict] = useState(false);
-  const [topic, setTopic] = useState("The Simulation Hypothesis");
+  const [topic, setTopic] = useState("");
   const [isHumanMode, setIsHumanMode] = useState(false);
 
   const { state, readyState, startDebate, submitArgument, isWaitingForHuman } = useDebate();
