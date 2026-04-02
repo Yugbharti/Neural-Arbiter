@@ -1,18 +1,27 @@
+/**
+ * FinalVerdict.tsx — Post-debate analytical report overlay.
+ *
+ * Now includes:
+ *  • "New Topic" button to return to the prompt page
+ *  • "Close" just hides the overlay (verdict is re-viewable via navbar button)
+ */
+
 import React from 'react';
-import { X, ShieldCheck, AlertTriangle, Zap, Target } from 'lucide-react';
+import { X, ShieldCheck, AlertTriangle, Zap, Target, RotateCcw } from 'lucide-react';
 import type { FinalVerdictData } from '../types';
 
 interface FinalVerdictProps {
   verdict: FinalVerdictData;
   onClose: () => void;
+  onNewTopic?: () => void;
 }
 
-export const FinalVerdict: React.FC<FinalVerdictProps> = ({ verdict, onClose }) => {
+export const FinalVerdict: React.FC<FinalVerdictProps> = ({ verdict, onClose, onNewTopic }) => {
   return (
     <div className="absolute inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-500">
-      
+
       <div className="relative w-full max-w-4xl bg-[#0d1117] border border-gray-800 rounded-2xl shadow-[0_0_50px_rgba(0,0,0,0.5)] overflow-hidden animate-in zoom-in-95 duration-500">
-        
+
         {/* Top Glowing Accent */}
         <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 via-purple-500 to-emerald-500" />
 
@@ -27,7 +36,7 @@ export const FinalVerdict: React.FC<FinalVerdictProps> = ({ verdict, onClose }) 
               <p className="text-xs text-gray-500 uppercase tracking-widest font-semibold">Post-Debate Analytical Report</p>
             </div>
           </div>
-          <button 
+          <button
             onClick={onClose}
             className="p-2 hover:bg-gray-800 rounded-full transition-colors text-gray-400 hover:text-white"
           >
@@ -37,7 +46,7 @@ export const FinalVerdict: React.FC<FinalVerdictProps> = ({ verdict, onClose }) 
 
         {/* Body Content - Grid Layout */}
         <div className="p-8 grid grid-cols-1 md:grid-cols-3 gap-6 overflow-y-auto max-h-[70vh]">
-          
+
           {/* Left Column: Metrics & Confidence */}
           <div className="space-y-6">
             <div className="bg-gray-950/50 border border-gray-800 p-5 rounded-xl">
@@ -48,10 +57,11 @@ export const FinalVerdict: React.FC<FinalVerdictProps> = ({ verdict, onClose }) 
               <div className="relative flex items-center justify-center h-32">
                 <svg className="w-full h-full transform -rotate-90">
                   <circle cx="50%" cy="50%" r="45" fill="none" stroke="currentColor" strokeWidth="8" className="text-gray-800" />
-                  <circle cx="50%" cy="50%" r="45" fill="none" stroke="currentColor" strokeWidth="8" 
-                    strokeDasharray="283" 
+                  <circle cx="50%" cy="50%" r="45" fill="none" stroke="currentColor" strokeWidth="8"
+                    strokeDasharray="283"
                     strokeDashoffset={283 - (283 * verdict.confidence) / 100}
-                    className="text-purple-500 drop-shadow-[0_0_8px_rgba(168,85,247,0.5)]" 
+                    className="text-purple-500 drop-shadow-[0_0_8px_rgba(168,85,247,0.5)]"
+                    style={{ transition: 'stroke-dashoffset 1.5s ease-in-out' }}
                   />
                 </svg>
                 <span className="absolute text-3xl font-black text-white">{verdict.confidence}%</span>
@@ -93,12 +103,21 @@ export const FinalVerdict: React.FC<FinalVerdictProps> = ({ verdict, onClose }) 
         </div>
 
         {/* Footer Action */}
-        <div className="p-6 bg-gray-900/30 border-t border-gray-800 flex justify-end">
-          <button 
+        <div className="p-6 bg-gray-900/30 border-t border-gray-800 flex justify-between items-center">
+          {onNewTopic && (
+            <button
+              onClick={onNewTopic}
+              className="flex items-center gap-2 px-6 py-2.5 bg-transparent border border-gray-700 text-gray-300 font-bold rounded-lg hover:bg-gray-800 hover:text-white transition-all transform active:scale-95"
+            >
+              <RotateCcw size={16} />
+              New Topic
+            </button>
+          )}
+          <button
             onClick={onClose}
-            className="px-8 py-2.5 bg-white text-black font-bold rounded-lg hover:bg-gray-200 transition-all transform active:scale-95 shadow-lg"
+            className="px-8 py-2.5 bg-white text-black font-bold rounded-lg hover:bg-gray-200 transition-all transform active:scale-95 shadow-lg ml-auto"
           >
-            Acknowledge & Close
+            Close Report
           </button>
         </div>
       </div>

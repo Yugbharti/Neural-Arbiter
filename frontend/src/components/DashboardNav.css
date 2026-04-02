@@ -1,0 +1,197 @@
+/* ==========================================================================
+   DashboardNav.css — Minimal dashboard top bar
+   ========================================================================== */
+
+.dash-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(10, 15, 24, 0.6);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 16px;
+  padding: 12px 20px;
+  z-index: 10;
+  flex-shrink: 0;
+}
+
+/* ── Left ──────────────────────────────────────────────────────────────────── */
+.dash-nav__left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.dash-nav__logo {
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, rgba(56, 109, 241, 0.15), rgba(139, 92, 246, 0.15));
+  border: 1px solid rgba(56, 109, 241, 0.25);
+  border-radius: 10px;
+  color: #60a5fa;
+  flex-shrink: 0;
+}
+
+.dash-nav__info {
+  min-width: 0;
+}
+
+.dash-nav__title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dash-nav__brand {
+  font-size: 13px;
+  font-weight: 800;
+  color: #e2e8f0;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+}
+
+.dash-nav__conn {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #ef4444;
+  flex-shrink: 0;
+}
+
+.dash-nav__conn--on {
+  background: #10b981;
+  box-shadow: 0 0 6px rgba(16, 185, 129, 0.5);
+}
+
+.dash-nav__topic {
+  font-size: 12px;
+  color: #64748b;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 300px;
+  margin-top: 1px;
+}
+
+/* ── Center ────────────────────────────────────────────────────────────────── */
+.dash-nav__center {
+  display: flex;
+  align-items: center;
+}
+
+.dash-nav__progress {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  background: rgba(59, 130, 246, 0.08);
+  border: 1px solid rgba(59, 130, 246, 0.15);
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #60a5fa;
+}
+
+.dash-nav__spin {
+  animation: nav-spin 1.5s linear infinite;
+}
+
+@keyframes nav-spin {
+  to { transform: rotate(360deg); }
+}
+
+.dash-nav__completed {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  background: rgba(16, 185, 129, 0.08);
+  border: 1px solid rgba(16, 185, 129, 0.15);
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #34d399;
+}
+
+/* ── Right ─────────────────────────────────────────────────────────────────── */
+.dash-nav__right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dash-nav__btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  font-size: 12px;
+  font-weight: 600;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: rgba(255, 255, 255, 0.04);
+  color: #94a3b8;
+}
+
+.dash-nav__btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #e2e8f0;
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+.dash-nav__btn--verdict {
+  color: #a78bfa;
+  border-color: rgba(168, 85, 247, 0.2);
+  background: rgba(168, 85, 247, 0.06);
+}
+
+.dash-nav__btn--verdict:hover {
+  background: rgba(168, 85, 247, 0.12);
+  color: #c4b5fd;
+  border-color: rgba(168, 85, 247, 0.3);
+}
+
+.dash-nav__btn--new {
+  color: #60a5fa;
+  border-color: rgba(96, 165, 250, 0.2);
+  background: rgba(96, 165, 250, 0.06);
+}
+
+.dash-nav__btn--new:hover {
+  background: rgba(96, 165, 250, 0.12);
+  color: #93c5fd;
+  border-color: rgba(96, 165, 250, 0.3);
+}
+
+.dash-nav__icon-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  color: #334155;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.dash-nav__icon-btn:hover {
+  color: #64748b;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.dash-nav__icon-btn--active {
+  color: #facc15;
+  background: rgba(250, 204, 21, 0.08);
+  border-color: rgba(250, 204, 21, 0.2);
+}

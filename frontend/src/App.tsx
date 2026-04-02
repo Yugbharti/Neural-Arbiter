@@ -1,20 +1,22 @@
 /**
  * App.tsx — Neural Arbiter root component.
  *
- * BYOK additions:
- *  • `savedKeys` state holds the UserKeys object from ApiModal (or null).
- *    It lives in sessionStorage-backed React state so it survives re-renders
- *    but is wiped when the tab closes.
- *  • `isApiModalOpen` controls ApiModal visibility.
- *  • `handleStart` passes `savedKeys` to `startDebate`.
- *  • <Navbar> replaces the inline header and receives all control props.
- *  • <ApiModal> is mounted at root level so it renders above all layers.
+ * Flow:
+ *  1. PromptPage (Gemini/Claude-style) — user enters a debate topic & settings.
+ *  2. On submit → smooth transition → Dashboard with live debate analytics.
+ *  3. ALL components receive syncedState from useSyncedReveal, ensuring
+ *     chat, graph, chart, sidebar, and navbar update in perfect time-sync.
+ *  4. Verdict is persistent — can be re-opened via "View Verdict" button.
+ *  5. "New Topic" returns to the PromptPage.
  */
 
 import { useState, useEffect, useCallback } from 'react';
 import { ReadyState } from 'react-use-websocket';
 import { useDebate } from './hooks/useDebate';
-import { Navbar } from './components/Navbar';
+import { useSyncedReveal } from './hooks/useSyncedReveal';
+import { PromptPage } from './components/PromptPage';
+import './components/PromptPage.css';
+import { DashboardNav } from './components/DashboardNav';
 import { ApiModal } from './components/ApiModal.tsx';
 import type { UserKeys } from './components/ApiModal.tsx';
 import { Chart } from './components/Chart';
@@ -22,9 +24,9 @@ import { Graph } from './components/Graph';
 import { Chat } from './components/Chat';
 import { Sidebar } from './components/Sidebar';
 import { FinalVerdict } from './components/FinalVerdict';
-import { Cpu, ArrowRight, Bug, X } from 'lucide-react';
+import { Bug, X, Cpu, ArrowRight } from 'lucide-react';
 
-// ── Dev Mode Panel (unchanged from previous iteration) ────────────────────────
+// ── Dev Mode Panel ────────────────────────────────────────────────────────────
 function DevModePanel({
   state,
   readyState,
@@ -69,19 +71,28 @@ function DevModePanel({
 
 // ── App ───────────────────────────────────────────────────────────────────────
 function App() {
-  const [isInitializing, setIsInitializing]   = useState(true);
+  const [currentView, setCurrentView]     = useState<'intro' | 'prompt' | 'exiting' | 'dashboard'>('intro');
   const [isSystemLoading, setIsSystemLoading] = useState(false);
-  const [showVerdict, setShowVerdict]         = useState(false);
-  const [topic, setTopic]                     = useState('');
-  const [isHumanMode, setIsHumanMode]         = useState(false);
-  const [isDevMode, setIsDevMode]             = useState(false);
-  const [isMockMode, setIsMockMode]           = useState(false);
+  const [showVerdict, setShowVerdict]     = useState(false);
+  const [topic, setTopic]                 = useState('');
+  const [isHumanMode, setIsHumanMode]     = useState(false);
+  const [isDevMode, setIsDevMode]         = useState(false);
+  const [isMockMode, setIsMockMode]       = useState(false);
 
-  // ── BYOK state ────────────────────────────────────────────────────────────
-  const [savedKeys, setSavedKeys]             = useState<UserKeys | null>(null);
-  const [isApiModalOpen, setIsApiModalOpen]   = useState(false);
+  // ── BYOK state ──────────────────────────────────────────────────────────────
+  const [savedKeys, setSavedKeys]           = useState<UserKeys | null>(null);
+  const [isApiModalOpen, setIsApiModalOpen] = useState(false);
 
   const { state, readyState, startDebate, submitArgument, isWaitingForHuman } = useDebate();
+
+  // ── Synced reveal: ALL dashboard components use this instead of raw state ──
+  const {
+    syncedState,
+    isThinking,
+    thinkingSpeaker,
+    totalMessages,
+    revealedMessages,
+  } = useSyncedReveal(state);
 
   // Shift+D → toggle dev mode
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
@@ -92,38 +103,50 @@ function App() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [handleKeyDown]);
 
+  // Auto-show verdict when synced state reveals it
   useEffect(() => {
-    if (state?.final_verdict) setShowVerdict(true);
-  }, [state?.final_verdict]);
+    if (syncedState?.final_verdict) setShowVerdict(true);
+  }, [syncedState?.final_verdict]);
 
-  const handleInitialize = () => {
-    setIsSystemLoading(true);
-    setTimeout(() => {
-      setIsInitializing(false);
-      setIsSystemLoading(false);
-    }, 2500);
-  };
-
-  const handleStart = () => {
-    if (!topic.trim()) return alert('Please enter a topic first!');
+  // ── Start debate from PromptPage ────────────────────────────────────────────
+  const handleStartFromPrompt = (submittedTopic: string) => {
+    setTopic(submittedTopic);
     setShowVerdict(false);
 
-    // If mock mode is ON, build a test-mode UserKeys object automatically
-    // so the backend receives user_keys.is_test_mode = true, regardless of
-    // whether the user manually configured keys via the API modal.
     const effectiveKeys: UserKeys | null = isMockMode
       ? { googleApiKey: 'TEST_KEY', groqApiKey: 'TEST_KEY', isTestMode: true }
       : savedKeys;
 
-    startDebate(topic, isHumanMode, effectiveKeys);
+    startDebate(submittedTopic, isHumanMode, effectiveKeys);
+
+    // Start exit animation, then switch to dashboard view
+    setCurrentView('exiting');
+    setTimeout(() => {
+      setCurrentView('dashboard');
+    }, 450);
+  };
+
+  // ── Return to prompt page ───────────────────────────────────────────────────
+  const handleNewTopic = () => {
+    setShowVerdict(false);
+    setCurrentView('prompt');
   };
 
   const handleSaveKeys = (keys: UserKeys) => {
     setSavedKeys(keys);
   };
 
-  // ── 1. LANDING SCREEN ─────────────────────────────────────────────────────
-  if (isInitializing) {
+  // ── Handle intro → prompt transition ────────────────────────────────────────
+  const handleInitialize = () => {
+    setIsSystemLoading(true);
+    setTimeout(() => {
+      setIsSystemLoading(false);
+      setCurrentView('prompt');
+    }, 2500);
+  };
+
+  // ── 0. INTRO / LANDING SCREEN ─────────────────────────────────────────────
+  if (currentView === 'intro') {
     return (
       <div className="h-screen w-full bg-[#05080a] flex flex-col items-center justify-center relative overflow-hidden font-sans">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-blue-500/10 rounded-full blur-[120px] animate-pulse" />
@@ -163,9 +186,54 @@ function App() {
     );
   }
 
+  // ── 1. PROMPT PAGE ─────────────────────────────────────────────────────────
+  if (currentView === 'prompt' || currentView === 'exiting') {
+    return (
+      <>
+        <div className={currentView === 'exiting' ? 'prompt-page--exiting' : ''}>
+          <PromptPage
+            readyState={readyState}
+            isHumanMode={isHumanMode}
+            isMockMode={isMockMode}
+            savedKeys={isMockMode ? { googleApiKey: 'TEST_KEY', groqApiKey: 'TEST_KEY', isTestMode: true } : savedKeys}
+            onHumanModeToggle={setIsHumanMode}
+            onMockModeToggle={() => setIsMockMode((p) => !p)}
+            onOpenApiModal={() => setIsApiModalOpen(true)}
+            onDevModeToggle={() => setIsDevMode((p) => !p)}
+            isDevMode={isDevMode}
+            onStartDebate={handleStartFromPrompt}
+          />
+        </div>
+
+        {/* Dev mode overlay on prompt page */}
+        {isDevMode && (
+          <DevModePanel
+            state={state}
+            readyState={readyState}
+            isWaitingForHuman={isWaitingForHuman}
+            savedKeys={savedKeys}
+            onClose={() => setIsDevMode(false)}
+          />
+        )}
+
+        {/* BYOK Modal */}
+        <ApiModal
+          isOpen={isApiModalOpen}
+          onClose={() => setIsApiModalOpen(false)}
+          onSave={handleSaveKeys}
+          savedKeys={savedKeys}
+        />
+      </>
+    );
+  }
+
   // ── 2. MAIN DASHBOARD ─────────────────────────────────────────────────────
+  // IMPORTANT: All components below use `syncedState` — NOT raw `state`.
+  // This ensures chat, graph, chart, sidebar, and navbar update in sync.
+  const hasVerdict = !!syncedState?.final_verdict;
+
   return (
-    <div className="h-screen w-full bg-[#0a0f18] p-4 flex flex-col gap-4 overflow-hidden font-sans animate-in fade-in zoom-in-95 duration-700 relative">
+    <div className="h-screen w-full bg-[#05080a] p-4 flex flex-col gap-3 overflow-hidden font-sans relative dashboard--entering">
 
       {/* Dev mode badge */}
       {isDevMode && (
@@ -177,7 +245,7 @@ function App() {
         </button>
       )}
 
-      {/* Dev mode panel */}
+      {/* Dev mode panel — shows RAW state for debugging */}
       {isDevMode && (
         <DevModePanel
           state={state}
@@ -188,51 +256,68 @@ function App() {
         />
       )}
 
-      {/* ── Navbar (replaces inline header) ── */}
-      <Navbar
+      {/* ── Simplified Dashboard Nav — uses syncedState ── */}
+      <DashboardNav
         readyState={readyState}
         topic={topic}
-        isHumanMode={isHumanMode}
+        roundsCompleted={syncedState?.rounds_completed ?? 0}
+        hasVerdict={hasVerdict}
         isDevMode={isDevMode}
-        isMockMode={isMockMode}
-        savedKeys={isMockMode ? { googleApiKey: 'TEST_KEY', groqApiKey: 'TEST_KEY', isTestMode: true } : savedKeys}
-        onTopicChange={setTopic}
-        onHumanModeToggle={setIsHumanMode}
+        onViewVerdict={() => setShowVerdict(true)}
+        onNewTopic={handleNewTopic}
         onDevModeToggle={() => setIsDevMode((p) => !p)}
-        onMockModeToggle={() => setIsMockMode((p) => !p)}
-        onOpenApiModal={() => setIsApiModalOpen(true)}
-        onStart={handleStart}
       />
 
-      {/* Main content grid */}
-      <div className="flex-1 min-h-0 flex flex-col gap-4 z-10">
-        <div className="h-1/2 flex gap-4 min-h-0">
-          <div className="flex-[3]"><Chart state={state} /></div>
-          <div className="flex-[2]"><Graph state={state} /></div>
+      {/* ── Main content: 3-column layout — ALL use syncedState ── */}
+      <div className="flex-1 min-h-0 flex gap-3 z-10">
+
+        {/* Left column: Chat */}
+        <div className="w-[30%] flex flex-col min-h-0">
+          <Chat
+            state={syncedState}
+            isWaitingForHuman={isWaitingForHuman}
+            onSubmitArgument={submitArgument}
+            isThinking={isThinking}
+            thinkingSpeaker={thinkingSpeaker}
+            totalMessages={totalMessages}
+            revealedMessages={revealedMessages}
+          />
         </div>
-        <div className="h-1/2 flex gap-4 min-h-0">
-          <div className="flex-[3]">
-            <Chat state={state} isWaitingForHuman={isWaitingForHuman} onSubmitArgument={submitArgument} />
+
+        {/* Center column: Graph (largest) */}
+        <div className="flex-1 flex flex-col gap-3 min-h-0">
+          <div className="flex-1 min-h-0">
+            <Graph state={syncedState} />
           </div>
-          <div className="flex-[2]"><Sidebar state={state} /></div>
+        </div>
+
+        {/* Right column: Chart + Sidebar stacked */}
+        <div className="w-[25%] flex flex-col gap-3 min-h-0">
+          <div className="h-[45%] min-h-0">
+            <Chart state={syncedState} />
+          </div>
+          <div className="flex-1 min-h-0">
+            <Sidebar state={syncedState} />
+          </div>
         </div>
       </div>
 
-      {/* Final Verdict Overlay */}
-      {showVerdict && state?.final_verdict && (
-        <FinalVerdict verdict={state.final_verdict} onClose={() => setShowVerdict(false)} />
+      {/* Final Verdict Overlay — only appears when syncedState reveals it */}
+      {showVerdict && syncedState?.final_verdict && (
+        <FinalVerdict
+          verdict={syncedState.final_verdict}
+          onClose={() => setShowVerdict(false)}
+          onNewTopic={handleNewTopic}
+        />
       )}
 
-      {/* BYOK Modal — mounted at root so it sits above everything */}
+      {/* BYOK Modal */}
       <ApiModal
         isOpen={isApiModalOpen}
         onClose={() => setIsApiModalOpen(false)}
         onSave={handleSaveKeys}
         savedKeys={savedKeys}
       />
-
-      {/* Team Bit Buster Logo */}
-     
     </div>
   );
 }

@@ -1,99 +1,237 @@
+/**
+ * Chat.tsx — Real-time debate chat with modern chat bubble UI.
+ *
+ * The delay/reveal logic is now handled by useSyncedReveal at the App level.
+ * This component simply renders whatever `state.transcript` it receives,
+ * plus shows a "thinking" bubble when `isThinking` + `thinkingSpeaker` are set.
+ */
+
 import React, { useEffect, useRef, useState } from 'react';
 import type { DebateState } from '../types';
-import { Send } from 'lucide-react';
+import { Send, Bot, Gavel, User } from 'lucide-react';
+import './Chat.css';
 
 interface ChatProps {
   state: DebateState | null;
   isWaitingForHuman?: boolean;
   onSubmitArgument?: (text: string) => void;
+  /** Whether the next message is in "thinking" phase (from useSyncedReveal) */
+  isThinking?: boolean;
+  /** The speaker who is "thinking" */
+  thinkingSpeaker?: string | null;
+  /** Total messages from backend (including unrevealed) */
+  totalMessages?: number;
+  /** Number of currently revealed messages */
+  revealedMessages?: number;
 }
 
-export const Chat: React.FC<ChatProps> = ({ state, isWaitingForHuman, onSubmitArgument }) => {
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const [inputValue, setInputValue] = useState("");
+function AgentAvatar({ speaker }: { speaker: string }) {
+  if (speaker === 'Agent A') {
+    return (
+      <div className="chat-avatar chat-avatar--a">
+        <Bot size={14} />
+      </div>
+    );
+  }
+  if (speaker === 'Agent B') {
+    return (
+      <div className="chat-avatar chat-avatar--b">
+        <Bot size={14} />
+      </div>
+    );
+  }
+  if (speaker === 'Judge') {
+    return (
+      <div className="chat-avatar chat-avatar--judge">
+        <Gavel size={14} />
+      </div>
+    );
+  }
+  return (
+    <div className="chat-avatar chat-avatar--human">
+      <User size={14} />
+    </div>
+  );
+}
 
-  // Auto-scroll to the bottom whenever the transcript updates
+/* ── Thinking indicator bubble ─────────────────────────────────────────────── */
+const THINKING_PHASES = [
+  'is analyzing arguments',
+  'is cross-referencing sources',
+  'is formulating response',
+  'is evaluating counter-points',
+  'is synthesizing evidence',
+];
+
+function ThinkingBubble({ speaker }: { speaker: string }) {
+  const [phaseIdx, setPhaseIdx] = useState(0);
+  const isA     = speaker === 'Agent A';
+  const isB     = speaker === 'Agent B';
+  const isJudge = speaker === 'Judge';
+
+  // Cycle through thinking phases every 800ms
   useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-    }
-  }, [state?.transcript]);
+    const startIdx = Math.floor(Math.random() * THINKING_PHASES.length);
+    setPhaseIdx(startIdx);
+    const interval = setInterval(() => {
+      setPhaseIdx((prev) => (prev + 1) % THINKING_PHASES.length);
+    }, 800);
+    return () => clearInterval(interval);
+  }, [speaker]);
+
+  const alignClass = isA ? 'chat-row--left'
+    : isB ? 'chat-row--right'
+    : isJudge ? 'chat-row--center'
+    : 'chat-row--left';
+
+  const bubbleClass = isA ? 'chat-bubble--a'
+    : isB ? 'chat-bubble--b'
+    : isJudge ? 'chat-bubble--judge'
+    : 'chat-bubble--human';
+
+  return (
+    <div className={`chat-row ${alignClass}`}>
+      {(isA || isJudge || (!isB)) && <AgentAvatar speaker={speaker} />}
+
+      <div className={`chat-bubble ${bubbleClass} chat-bubble--thinking`}>
+        <div className="chat-thinking-label">
+          <span className="chat-thinking-name">{speaker}</span>
+          <span className="chat-thinking-text"> {THINKING_PHASES[phaseIdx]}...</span>
+        </div>
+        <div className="chat-typing">
+          <span /><span /><span />
+        </div>
+      </div>
+
+      {isB && <AgentAvatar speaker={speaker} />}
+    </div>
+  );
+}
+
+
+export const Chat: React.FC<ChatProps> = ({
+  state,
+  isWaitingForHuman,
+  onSubmitArgument,
+  isThinking = false,
+  thinkingSpeaker = null,
+  totalMessages = 0,
+  revealedMessages = 0,
+}) => {
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [inputValue, setInputValue] = useState('');
 
   const transcript = state?.transcript || [];
+
+  // Auto-scroll when messages change or thinking state changes
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
+    }
+  }, [transcript.length, isThinking]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (inputValue.trim() && onSubmitArgument) {
       onSubmitArgument(inputValue);
-      setInputValue("");
+      setInputValue('');
     }
   };
 
+  const isAgentA = (speaker: string) => speaker === 'Agent A';
+  const isAgentB = (speaker: string) => speaker === 'Agent B';
+  const isJudge  = (speaker: string) => speaker === 'Judge';
+
   return (
-    <div className="flex flex-col h-full bg-gray-900/50 border border-gray-800 rounded-xl overflow-hidden shadow-lg relative">
-      
+    <div className="chat-container">
       {/* Header */}
-      <div className="px-4 py-3 border-b border-gray-800 bg-gray-900/80 sticky top-0 z-10">
-        <h3 className="text-sm font-bold text-gray-200 uppercase tracking-wider flex items-center gap-2">
-          Live Transcript
-        </h3>
+      <div className="chat-header">
+        <div className="chat-header__left">
+          <div className="chat-header__dot" />
+          <h3 className="chat-header__title">Live Debate</h3>
+        </div>
+        <span className="chat-header__count">
+          {revealedMessages} / {totalMessages} {totalMessages === 1 ? 'message' : 'messages'}
+        </span>
       </div>
 
-      {/* Chat Messages Area */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4" ref={scrollRef}>
-        {transcript.length === 0 ? (
-          <div className="h-full flex items-center justify-center text-gray-500 italic text-sm">
-            Waiting for debate to begin...
+      {/* Messages */}
+      <div className="chat-messages" ref={scrollRef}>
+        {transcript.length === 0 && !isThinking ? (
+          <div className="chat-empty">
+            <div className="chat-empty__icon">
+              <Bot size={24} />
+            </div>
+            <p>Waiting for the debate to begin...</p>
+            <span>Agents are preparing their arguments</span>
           </div>
         ) : (
-          transcript.map((entry, index) => {
-            // Determine styling based on the speaker
-            let bubbleStyle = "bg-gray-800 border-gray-700 text-gray-200";
-            let nameStyle = "text-gray-400";
+          <>
+            {/* Revealed messages (from syncedState — already filtered) */}
+            {transcript.map((entry, index) => {
+              const text = (entry as any).argument || entry.text || '...';
+              const alignClass = isAgentA(entry.speaker)
+                ? 'chat-row--left'
+                : isAgentB(entry.speaker)
+                  ? 'chat-row--right'
+                  : isJudge(entry.speaker)
+                    ? 'chat-row--center'
+                    : 'chat-row--left';
 
-            if (entry.speaker === "Agent A") {
-              bubbleStyle = "bg-blue-950/40 border-blue-900/50 text-blue-50";
-              nameStyle = "text-blue-400";
-            } else if (entry.speaker === "Agent B") {
-              bubbleStyle = "bg-red-950/40 border-red-900/50 text-red-50";
-              nameStyle = "text-red-400";
-            } else if (entry.speaker === "Judge") {
-              bubbleStyle = "bg-purple-950/40 border-purple-900/50 text-purple-50";
-              nameStyle = "text-purple-400";
-            }
+              const bubbleClass = isAgentA(entry.speaker)
+                ? 'chat-bubble--a'
+                : isAgentB(entry.speaker)
+                  ? 'chat-bubble--b'
+                  : isJudge(entry.speaker)
+                    ? 'chat-bubble--judge'
+                    : 'chat-bubble--human';
 
-            return (
-              <div key={index} className={`p-4 rounded-xl border ${bubbleStyle} animate-in fade-in slide-in-from-bottom-2 duration-300`}>
-                <div className={`text-xs font-bold uppercase tracking-wider mb-1.5 ${nameStyle}`}>
-                  {entry.speaker}
+              return (
+                <div
+                  key={index}
+                  className={`chat-row ${alignClass}`}
+                  style={{ animationDelay: `${Math.min(index * 50, 300)}ms` }}
+                >
+                  {(isAgentA(entry.speaker) || isJudge(entry.speaker)) && (
+                    <AgentAvatar speaker={entry.speaker} />
+                  )}
+
+                  <div className={`chat-bubble ${bubbleClass}`}>
+                    <div className="chat-bubble__speaker">{entry.speaker}</div>
+                    <div className="chat-bubble__text">{text}</div>
+                    <div className="chat-bubble__meta">
+                      Round {Math.ceil((index + 1) / 2)}
+                    </div>
+                  </div>
+
+                  {isAgentB(entry.speaker) && (
+                    <AgentAvatar speaker={entry.speaker} />
+                  )}
                 </div>
-                <div className="text-sm leading-relaxed whitespace-pre-wrap">
-                  {/* Safely fallback: render 'argument' first, then 'text' if argument is missing */}
-                  {(entry as any).argument || entry.text || "..."}
-                </div>
-              </div>
-            );
-          })
+              );
+            })}
+
+            {/* Thinking indicator — driven by App-level useSyncedReveal */}
+            {isThinking && thinkingSpeaker && (
+              <ThinkingBubble speaker={thinkingSpeaker} />
+            )}
+          </>
         )}
       </div>
 
-      {/* Human Input Area (Only visible in Human Mode when it's your turn) */}
+      {/* Human Input */}
       {isWaitingForHuman && (
-        <div className="p-3 border-t border-gray-800 bg-gray-900/80">
-          <form onSubmit={handleSubmit} className="flex gap-2">
+        <div className="chat-input-area">
+          <form onSubmit={handleSubmit} className="chat-input-form">
             <input
               type="text"
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               placeholder="Type your rebuttal..."
-              className="flex-1 bg-gray-950 border border-gray-700 rounded-lg px-4 py-2 text-sm text-gray-200 focus:outline-none focus:ring-1 focus:ring-emerald-500/50"
+              className="chat-input"
             />
-            <button
-              type="submit"
-              disabled={!inputValue.trim()}
-              className="bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white px-4 py-2 rounded-lg transition-colors flex items-center justify-center"
-            >
-              <Send size={18} />
+            <button type="submit" disabled={!inputValue.trim()} className="chat-send-btn">
+              <Send size={16} />
             </button>
           </form>
         </div>
