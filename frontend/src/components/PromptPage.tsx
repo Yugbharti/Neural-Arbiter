@@ -184,10 +184,10 @@ export function PromptPage({
           <button
             onClick={onMockModeToggle}
             className={`prompt-page__btn-subtle ${isMockMode ? 'prompt-page__btn-subtle--mock' : ''}`}
-            title={isMockMode ? 'Mock Mode ON' : 'Live Mode'}
+            title={isMockMode ? 'Currently in Mock Mode — click to switch to Live' : 'Try Mock Mode — runs with sample data, no API keys needed'}
           >
             <FlaskConical size={14} />
-            <span>{isMockMode ? 'Mock' : 'Live'}</span>
+            <span>{isMockMode ? 'Exit Mock' : 'Try Mock Mode'}</span>
           </button>
 
           {/* Dev toggle */}
