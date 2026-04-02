@@ -85,10 +85,8 @@ export const Graph: React.FC<GraphProps> = ({ state }) => {
           y: i * 220 + 50 
         },
         data: { 
-          // IMPORTANT: Mapping 'fallacy' from backend to 'type' for the badge
           type: n.fallacy && n.fallacy !== 'none' ? n.fallacy : 'Core Argument', 
           speaker: n.speaker, 
-          // IMPORTANT: Mapping 'claim' from backend to 'content' for the display
           content: n.claim || "Synthesizing point...",
           strength: n.strength || "moderate"
         },
@@ -107,7 +105,7 @@ export const Graph: React.FC<GraphProps> = ({ state }) => {
         source: state.argument_nodes[i-1].id,
         target: state.argument_nodes[i].id,
         animated: true,
-        type: 'smoothstep', // Cleaner look for side-to-side transitions
+        type: 'smoothstep', 
         style: { stroke: '#4b5563', strokeWidth: 2, opacity: 0.4 }
       });
     }
@@ -130,12 +128,14 @@ export const Graph: React.FC<GraphProps> = ({ state }) => {
           edges={edges} 
           nodeTypes={nodeTypes}
           fitView 
-          fitViewOptions={{ padding: 0.3 }}
+          // THIS IS THE FIX: maxZoom: 1 prevents the massive zoomed-in nodes when there are only 1 or 2 arguments.
+          fitViewOptions={{ padding: 0.4, maxZoom: 1, minZoom: 0.1 }}
+          minZoom={0.1}
+          maxZoom={1.5}
           colorMode="dark"
         >
           <Background variant={BackgroundVariant.Dots} gap={30} size={1} color="#1f2937" />
           <Controls className="bg-gray-800 border-gray-700 fill-gray-400 rounded-lg shadow-xl" />
-          
         </ReactFlow>
       </div>
     </div>

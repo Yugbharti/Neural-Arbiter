@@ -2,12 +2,12 @@
  * App.tsx — Neural Arbiter root component.
  *
  * Flow:
- *  1. PromptPage (Gemini/Claude-style) — user enters a debate topic & settings.
- *  2. On submit → smooth transition → Dashboard with live debate analytics.
- *  3. ALL components receive syncedState from useSyncedReveal, ensuring
- *     chat, graph, chart, sidebar, and navbar update in perfect time-sync.
- *  4. Verdict is persistent — can be re-opened via "View Verdict" button.
- *  5. "New Topic" returns to the PromptPage.
+ * 1. PromptPage (Gemini/Claude-style) — user enters a debate topic & settings.
+ * 2. On submit → smooth transition → Dashboard with live debate analytics.
+ * 3. ALL components receive syncedState from useSyncedReveal, ensuring
+ * chat, graph, chart, sidebar, and navbar update in perfect time-sync.
+ * 4. Verdict is persistent — can be re-opened via "View Verdict" button.
+ * 5. "New Topic" returns to the PromptPage.
  */
 
 import { useState, useEffect, useCallback } from 'react';
@@ -103,9 +103,14 @@ function App() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [handleKeyDown]);
 
-  // Auto-show verdict when synced state reveals it
+  // FIX: Auto-show verdict with a 2-second delay so it doesn't feel abrupt
   useEffect(() => {
-    if (syncedState?.final_verdict) setShowVerdict(true);
+    if (syncedState?.final_verdict) {
+      const timer = setTimeout(() => {
+        setShowVerdict(true);
+      }, 2000); // 2 second delay to let the user absorb the final UI state
+      return () => clearTimeout(timer);
+    }
   }, [syncedState?.final_verdict]);
 
   // ── Start debate from PromptPage ────────────────────────────────────────────
@@ -306,6 +311,7 @@ function App() {
       {showVerdict && syncedState?.final_verdict && (
         <FinalVerdict
           verdict={syncedState.final_verdict}
+          transcript={syncedState.transcript}
           onClose={() => setShowVerdict(false)}
           onNewTopic={handleNewTopic}
         />
