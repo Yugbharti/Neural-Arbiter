@@ -23,11 +23,36 @@ load_dotenv()  # reads .env from the current working directory (project root)
 _raw = os.getenv("TEST_MODE", "true").strip().lower()
 TEST_MODE: bool = _raw != "false"
 
-print(f"🛠️  INITIALIZING BACKEND... TEST_MODE = {TEST_MODE}")
+# ── LOUD STARTUP BANNER — impossible to miss ──────────────────────────────────
 if TEST_MODE:
-    print("    ↳ [MOCK] All LLM / search calls are DISABLED. Returning mock data only.")
+    print("\n" + "=" * 70)
+    print("  ███╗   ███╗ ██████╗  ██████╗██╗  ██╗    ███╗   ███╗ ██████╗ ██████╗ ███████╗")
+    print("  ████╗ ████║██╔═══██╗██╔════╝██║ ██╔╝    ████╗ ████║██╔═══██╗██╔══██╗██╔════╝")
+    print("  ██╔████╔██║██║   ██║██║     █████╔╝     ██╔████╔██║██║   ██║██║  ██║█████╗  ")
+    print("  ██║╚██╔╝██║██║   ██║██║     ██╔═██╗     ██║╚██╔╝██║██║   ██║██║  ██║██╔══╝  ")
+    print("  ██║ ╚═╝ ██║╚██████╔╝╚██████╗██║  ██╗    ██║ ╚═╝ ██║╚██████╔╝██████╔╝███████╗")
+    print("  ╚═╝     ╚═╝ ╚═════╝  ╚═════╝╚═╝  ╚═╝    ╚═╝     ╚═╝ ╚═════╝ ╚═════╝ ╚══════╝")
+    print("=" * 70)
+    print("  ✅  TEST_MODE = True")
+    print("  ✅  ALL LLM calls → MOCK data (no API usage)")
+    print("  ✅  ALL web searches → MOCK snippets")
+    print("  ✅  Judge verdicts → MOCK scores")
+    print(f"  📄  .env value read: TEST_MODE = '{_raw}'")
+    print("=" * 70 + "\n")
 else:
-    print("    ↳ [LIVE] Real API calls are ENABLED. Ensure keys are set in .env.")
+    print("\n" + "!" * 70)
+    print("  ⚠️  ██╗     ██╗██╗   ██╗███████╗    ███╗   ███╗ ██████╗ ██████╗ ███████╗")
+    print("  ⚠️  ██║     ██║██║   ██║██╔════╝    ████╗ ████║██╔═══██╗██╔══██╗██╔════╝")
+    print("  ⚠️  ██║     ██║██║   ██║█████╗      ██╔████╔██║██║   ██║██║  ██║█████╗  ")
+    print("  ⚠️  ██║     ██║╚██╗ ██╔╝██╔══╝      ██║╚██╔╝██║██║   ██║██║  ██║██╔══╝  ")
+    print("  ⚠️  ███████╗██║ ╚████╔╝ ███████╗    ██║ ╚═╝ ██║╚██████╔╝██████╔╝███████╗")
+    print("  ⚠️  ╚══════╝╚═╝  ╚═══╝  ╚══════╝    ╚═╝     ╚═╝ ╚═════╝ ╚═════╝ ╚══════╝")
+    print("!" * 70)
+    print("  🔴  TEST_MODE = False — REAL API CALLS ARE ACTIVE")
+    print("  🔴  LLM calls WILL consume API quota")
+    print("  🔴  Web searches WILL hit DuckDuckGo")
+    print(f"  📄  .env value read: TEST_MODE = '{_raw}'")
+    print("!" * 70 + "\n")
 
 
 # ── Key accessors (raise at startup if a required key is absent in live mode) ──

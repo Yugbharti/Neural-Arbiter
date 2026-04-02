@@ -75,6 +75,7 @@ function App() {
   const [topic, setTopic]                     = useState('');
   const [isHumanMode, setIsHumanMode]         = useState(false);
   const [isDevMode, setIsDevMode]             = useState(false);
+  const [isMockMode, setIsMockMode]           = useState(false);
 
   // ── BYOK state ────────────────────────────────────────────────────────────
   const [savedKeys, setSavedKeys]             = useState<UserKeys | null>(null);
@@ -105,9 +106,16 @@ function App() {
 
   const handleStart = () => {
     if (!topic.trim()) return alert('Please enter a topic first!');
-    // Warn if no keys configured, but allow proceeding (server may have env keys)
     setShowVerdict(false);
-    startDebate(topic, isHumanMode, savedKeys);
+
+    // If mock mode is ON, build a test-mode UserKeys object automatically
+    // so the backend receives user_keys.is_test_mode = true, regardless of
+    // whether the user manually configured keys via the API modal.
+    const effectiveKeys: UserKeys | null = isMockMode
+      ? { googleApiKey: 'TEST_KEY', groqApiKey: 'TEST_KEY', isTestMode: true }
+      : savedKeys;
+
+    startDebate(topic, isHumanMode, effectiveKeys);
   };
 
   const handleSaveKeys = (keys: UserKeys) => {
@@ -186,10 +194,12 @@ function App() {
         topic={topic}
         isHumanMode={isHumanMode}
         isDevMode={isDevMode}
-        savedKeys={savedKeys}
+        isMockMode={isMockMode}
+        savedKeys={isMockMode ? { googleApiKey: 'TEST_KEY', groqApiKey: 'TEST_KEY', isTestMode: true } : savedKeys}
         onTopicChange={setTopic}
         onHumanModeToggle={setIsHumanMode}
         onDevModeToggle={() => setIsDevMode((p) => !p)}
+        onMockModeToggle={() => setIsMockMode((p) => !p)}
         onOpenApiModal={() => setIsApiModalOpen(true)}
         onStart={handleStart}
       />

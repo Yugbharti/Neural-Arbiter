@@ -88,10 +88,16 @@ async def debate_websocket(websocket: WebSocket):
             user_keys is not None and user_keys.get("is_test_mode", False)
         )
 
-        print(
-            f"[ws] Debate: '{topic}' | server TEST_MODE={TEST_MODE} | "
-            f"effective={effective_test_mode} | human_mode={is_human_mode}"
-        )
+        print("\n" + "-" * 60)
+        if effective_test_mode:
+            print(f"  ✅ DEBATE START — MOCK MODE")
+        else:
+            print(f"  🔴 DEBATE START — LIVE MODE (real API calls!)")
+        print(f"  Topic:         '{topic}'")
+        print(f"  Server TEST_MODE:    {TEST_MODE}")
+        print(f"  Effective test mode: {effective_test_mode}")
+        print(f"  Human mode:          {is_human_mode}")
+        print("-" * 60)
 
         # ── 3. Build initial state ────────────────────────────────────────────
         initial_state = {

@@ -20,10 +20,12 @@ interface NavbarProps {
   topic:            string;
   isHumanMode:      boolean;
   isDevMode:        boolean;
+  isMockMode:       boolean;
   savedKeys:        UserKeys | null;
   onTopicChange:    (t: string) => void;
   onHumanModeToggle:(v: boolean) => void;
   onDevModeToggle:  () => void;
+  onMockModeToggle: () => void;
   onOpenApiModal:   () => void;
   onStart:          () => void;
 }
@@ -85,10 +87,12 @@ export function Navbar({
   topic,
   isHumanMode,
   isDevMode,
+  isMockMode,
   savedKeys,
   onTopicChange,
   onHumanModeToggle,
   onDevModeToggle,
+  onMockModeToggle,
   onOpenApiModal,
   onStart,
 }: NavbarProps) {
@@ -181,10 +185,24 @@ export function Navbar({
           <Play size={16} fill="white" /> DEPLOY AGENTS
         </button>
 
-        {/* Dev mode toggle (subtle) */}
+        {/* Mock Mode toggle — clearly visible */}
+        <button
+          onClick={onMockModeToggle}
+          title={isMockMode ? 'Mock Mode ON — click to switch to Live Mode' : 'Live Mode — click to switch to Mock Mode (no API calls)'}
+          className={`flex items-center gap-1.5 px-3 py-2 text-xs font-bold rounded-xl border transition-all ${
+            isMockMode
+              ? 'bg-yellow-500/20 text-yellow-400 border-yellow-500/40 shadow-[0_0_12px_rgba(234,179,8,0.15)]'
+              : 'bg-gray-900/60 border-gray-700/60 text-gray-500 hover:text-gray-300 hover:bg-gray-800'
+          }`}
+        >
+          <FlaskConical size={13} />
+          {isMockMode ? 'MOCK' : 'LIVE'}
+        </button>
+
+        {/* Dev inspector toggle (subtle) */}
         <button
           onClick={onDevModeToggle}
-          title="Toggle Dev Mode (Shift+D)"
+          title="Toggle Dev Inspector (Shift+D)"
           className={`p-2 rounded-xl transition-all ${
             isDevMode
               ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/40'
