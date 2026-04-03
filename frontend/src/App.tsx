@@ -185,7 +185,7 @@ function App() {
           )}
         </div>
         <div className="absolute bottom-8 text-[10px] text-gray-600 font-mono tracking-widest uppercase">
-          Autonomous Reasoning Engine // Protocol v.1.00
+         ORCA v1.0
         </div>
       </div>
     );
