@@ -52,7 +52,7 @@ def debate_router(state: DebateState) -> str:
       "human_node" — it's Agent B's turn and human mode is active
       "debater"    — normal AI turn
     """
-    rounds_done   = state.get("rounds_completed", 0)
+    rounds_done   = state.get("rounds_completed", 0) 
     current       = state.get("current_speaker", "Agent A")
     is_human_mode = state.get("is_human_mode", False)
 

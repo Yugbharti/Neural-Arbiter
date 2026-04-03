@@ -312,7 +312,7 @@ export function PromptPage({
       <footer className="prompt-page__footer">
         <span>Powered by LangGraph · Gemini · Groq</span>
         <span className="prompt-page__footer-sep">•</span>
-        <span>Autonomous Reasoning Engine v1.0</span>
+        <span>Orca v1.0</span>
       </footer>
     </div>
   );
