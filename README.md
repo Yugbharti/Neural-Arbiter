@@ -182,6 +182,7 @@ ai-debater/
 ## 👤 Author
 
 **Yug Bharti**
+
 _If you're reading this during judging — yes, the agents really are arguing with each other. No, we didn't script the arguments._
 
 ```
